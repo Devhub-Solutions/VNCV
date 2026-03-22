@@ -5,7 +5,7 @@
 **OCR engine tối ưu hoá cho tiếng Việt**  
 Nhận dạng văn bản từ ảnh
 
-[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.10--3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/License-Open%20Source-22c55e?style=flat-square)](LICENSE)
 [![DevHub](https://img.shields.io/badge/By-DevHub%20Solutions-6366f1?style=flat-square)](https://github.com)
 [![VietOCR](https://img.shields.io/badge/Powered%20by-VietOCR-f97316?style=flat-square)](https://github.com/pbcquoc/vietocr)
@@ -44,7 +44,7 @@ Nhận dạng văn bản từ ảnh
 
 ### Yêu cầu hệ thống
 
-- Python **3.12+**
+- Python **3.10–3.12**
 - RAM: tối thiểu **4GB**
 - Không cần GPU
 
@@ -55,11 +55,11 @@ Nhận dạng văn bản từ ảnh
 git clone https://github.com/Devhub-Solutions/VNCV.git
 cd VNCV
 
-# Cài đặt dependencies
+# Cài đặt dependencies (chạy từ source)
 pip install -r requirements.txt
 
-# Cài đặt torchvision (CPU-only)
-pip install torchvision --index-url https://download.pytorch.org/whl/cpu
+# (Tuỳ chọn) Cài trực tiếp khi phát hành PyPI
+pip install vncv
 ```
 
 > **Lưu ý:** Lần chạy đầu tiên sẽ tự động tải model (~18,500 items). Quá trình này chỉ xảy ra một lần.
@@ -71,13 +71,8 @@ pip install torchvision --index-url https://download.pytorch.org/whl/cpu
 ### Chạy cơ bản
 
 ```bash
-python vietocr_test.py <đường_dẫn_ảnh>
-```
-
-**Ví dụ:**
-
-```bash
-python vietocr_test.py images/output/image.png
+# Sau khi cài từ PyPI hoặc local
+vncv images/output/image.png --save-annotated
 ```
 
 ### Kết quả mẫu
@@ -89,7 +84,7 @@ python vietocr_test.py images/output/image.png
 ### Tích hợp vào Python
 
 ```python
-from vietocr_test import extract_text
+from vncv import extract_text
 
 results = extract_text("path/to/your/image.png")
 for line in results:
@@ -103,9 +98,15 @@ for line in results:
 ```
 VNCV/
 ├── 📂 images/
-│   ├── raw/          # Ảnh đầu vào gốc
-│   └── output/       # Ảnh sau khi xử lý (có bounding box)
-├── 📜 vietocr_test.py   # Script chính
+│   ├── raw/             # Ảnh đầu vào gốc
+│   └── output/          # Ảnh sau khi xử lý (có bounding box)
+├── 📂 vncv/             # Thư viện Python (packaged)
+│   ├── ocr.py
+│   ├── __init__.py
+│   └── weights/         # Trọng số ONNX (đóng gói kèm)
+├── 📜 main.py           # Entrypoint/CLI
+├── 📜 vietocr_test.py   # Giữ tương thích CLI cũ
+├── 📜 pyproject.toml
 ├── 📜 requirements.txt
 └── 📖 README.md
 ```
