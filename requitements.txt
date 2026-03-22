@@ -1,0 +1,8 @@
+onnxruntime 
+opencv-python 
+shapely 
+pyclipper 
+numpy==1.26.4
+vietocr
+torch 
+torchvision --index-url https://download.pytorch.org/whl/cpu
