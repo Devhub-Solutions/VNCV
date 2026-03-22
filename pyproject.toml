@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vncv"
+version = "0.1.0"
+description = "Vietnamese OCR engine optimized for CPU deployments"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = "LicenseRef-DevHubSolutions"
+license-files = ["LICENSE"]
+authors = [
+  {name = "DevHub Solutions"}
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Developers",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+dependencies = [
+  "onnxruntime",
+  "opencv-python",
+  "shapely",
+  "pyclipper",
+  "numpy==1.26.4",
+  "vietocr",
+  "torch",
+  "torchvision",
+  "pillow"
+]
+
+[project.urls]
+Homepage = "https://github.com/Devhub-Solutions/VNCV"
+Repository = "https://github.com/Devhub-Solutions/VNCV"
+
+[project.scripts]
+vncv = "vncv.ocr:main"
+
+[tool.setuptools]
+packages = ["vncv", "vncv.weights"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+vncv = ["weights/*.onnx"]
