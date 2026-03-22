@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import math
 import os
 import warnings
@@ -9,7 +11,7 @@ from warnings import filterwarnings
 import cv2
 import numpy
 from PIL import Image
-from pyclipper import *
+from pyclipper import ET_CLOSEDPOLYGON, JT_ROUND, PyclipperOffset
 from shapely.geometry import Polygon
 from vietocr.tool.config import Cfg
 from vietocr.tool.predictor import Predictor

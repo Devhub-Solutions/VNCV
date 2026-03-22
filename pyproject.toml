@@ -9,6 +9,7 @@ description = "Vietnamese OCR engine optimized for CPU deployments"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 license = "LicenseRef-DevHubSolutions"
+license-files = ["LICENSE"]
 authors = [
   {name = "DevHub Solutions"}
 ]
