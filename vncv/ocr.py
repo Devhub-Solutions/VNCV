@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import os
+import json
 import warnings
 from argparse import ArgumentParser
 from importlib import resources
@@ -319,6 +320,81 @@ class Classification:
 
 
 # ============================================================================
+# ENGLISH RECOGNITION (ONNX)
+# ============================================================================
+
+class EnglishRecognition:
+    def __init__(self, onnx_path, session=None):
+        self.session = session
+        if self.session is None:
+            assert onnx_path is not None
+            assert os.path.exists(onnx_path)
+            from onnxruntime import InferenceSession
+            self.session = InferenceSession(onnx_path,
+                                            providers=['CUDAExecutionProvider',
+                                                       'CPUExecutionProvider'])
+        self.inputs = self.session.get_inputs()[0]
+        self.input_shape = [3, 48, 320]
+        self.ctc_decoder = CTCDecoder()
+
+    def resize(self, image, max_wh_ratio):
+        input_h, input_w = self.input_shape[1], self.input_shape[2]
+
+        assert self.input_shape[0] == image.shape[2]
+        input_w = int((input_h * max_wh_ratio))
+        w = self.inputs.shape[3:][0]
+        if isinstance(w, str):
+            pass
+        elif w is not None and w > 0:
+            input_w = w
+        h, w = image.shape[:2]
+        ratio = w / float(h)
+        if math.ceil(input_h * ratio) > input_w:
+            resized_w = input_w
+        else:
+            resized_w = int(math.ceil(input_h * ratio))
+
+        resized_image = cv2.resize(image, (resized_w, input_h))
+        resized_image = resized_image.transpose((2, 0, 1))
+        resized_image = resized_image.astype('float32')
+        resized_image = resized_image / 255.0
+        resized_image -= 0.5
+        resized_image /= 0.5
+        padded_image = numpy.zeros((self.input_shape[0], input_h, input_w), dtype=numpy.float32)
+        padded_image[:, :, 0:resized_w] = resized_image
+        return padded_image
+
+    def __call__(self, images):
+        batch_size = 6
+        num_images = len(images)
+
+        results = [['', 0.0]] * num_images
+        confidences = [['', 0.0]] * num_images
+        indices = numpy.argsort(numpy.array([x.shape[1] / x.shape[0] for x in images]))
+
+        for index in range(0, num_images, batch_size):
+            input_h, input_w = self.input_shape[1], self.input_shape[2]
+            max_wh_ratio = input_w / input_h
+            norm_images = []
+            for i in range(index, min(num_images, index + batch_size)):
+                h, w = images[indices[i]].shape[0:2]
+                max_wh_ratio = max(max_wh_ratio, w * 1.0 / h)
+            for i in range(index, min(num_images, index + batch_size)):
+                norm_image = self.resize(images[indices[i]], max_wh_ratio)
+                norm_image = norm_image[numpy.newaxis, :]
+                norm_images.append(norm_image)
+            norm_images = numpy.concatenate(norm_images)
+
+            outputs = self.session.run(None,
+                                       {self.inputs.name: norm_images})
+            result, confidence = self.ctc_decoder(outputs[0])
+            for i in range(len(result)):
+                results[indices[index + i]] = result[i]
+                confidences[indices[index + i]] = confidence[i]
+        return results, confidences
+
+
+# ============================================================================
 # VIETOCR RECOGNITION — thay thế Recognition ONNX cũ
 # ============================================================================
 
@@ -348,11 +424,24 @@ class VietOCRRecognition:
 
 detection = Detection(_weight_path('detection.onnx'))
 classification = Classification(_weight_path('classification.onnx'))
-recognition = VietOCRRecognition(
-    model_name='vgg_transformer',
-    device='cpu',        # đổi 'cuda:0' nếu có GPU
-    weight_path=None     # None = tự download lần đầu
-)
+
+_recognition_models = {}
+
+def get_recognition(lang):
+    if lang not in _recognition_models:
+        if lang == 'vi':
+            _recognition_models['vi'] = VietOCRRecognition(
+                model_name='vgg_transformer',
+                device='cpu',        # đổi 'cuda:0' nếu có GPU
+                weight_path=None     # None = tự download lần đầu
+            )
+        elif lang == 'en':
+            _recognition_models['en'] = EnglishRecognition(_weight_path('recognition.onnx'))
+        else:
+            raise ValueError(f"Unsupported language: {lang}")
+    return _recognition_models[lang]
+
+recognition = get_recognition('vi')
 
 
 # ============================================================================
@@ -362,7 +451,9 @@ recognition = VietOCRRecognition(
 def extract_text(filepath: str,
                  save_annotated: bool = False,
                  annotated_path: str | os.PathLike | None = None,
-                 ner: bool = False):
+                 ner: bool = False,
+                 lang: str = 'vi',
+                 return_dict: bool = False):
     """
     Run OCR on an image and return detected text lines.
 
@@ -396,7 +487,8 @@ def extract_text(filepath: str,
 
     if cropped_images:
         cropped_images, _ = classification(cropped_images)
-        results, confidences = recognition(cropped_images)
+        rec_model = get_recognition(lang)
+        results, confidences = rec_model(cropped_images)
     else:
         results, confidences = [], []
 
@@ -425,6 +517,22 @@ def extract_text(filepath: str,
                 save_jsonl([doc], 'dataset.jsonl')
                 print(f"[NER] Saved → dataset.jsonl")
 
+    if return_dict:
+        output_data = []
+        for i, result in enumerate(results):
+            box = points[i].tolist()
+            conf = confidences[i] if i < len(confidences) else 0.0
+            if isinstance(conf, (list, tuple, numpy.ndarray)):
+                conf = [float(c) for c in conf]
+            else:
+                conf = float(conf)
+            output_data.append({
+                "text": result,
+                "confidence": conf,
+                "box": box
+            })
+        return output_data
+
     return results
 
 
@@ -437,16 +545,25 @@ def main():
                         help='save annotated image with bounding boxes')
     parser.add_argument('--annotated-path', type=str, default=None,
                         help='custom output path for annotated image')
+    parser.add_argument('--lang', type=str, default='vi', choices=['vi', 'en'],
+                        help='language for OCR (vi or en)')
+    parser.add_argument('--json', action='store_true',
+                        help='output result as json instead of Python list')
     args = parser.parse_args()
 
     results = extract_text(
         args.filepath,
         save_annotated=args.save_annotated,
         annotated_path=args.annotated_path,
-        ner=args.ner
+        ner=args.ner,
+        lang=args.lang,
+        return_dict=args.json
     )
 
-    print(results)
+    if args.json:
+        print(json.dumps(results, ensure_ascii=False, indent=2))
+    else:
+        print(results)
 
 
 if __name__ == '__main__':
