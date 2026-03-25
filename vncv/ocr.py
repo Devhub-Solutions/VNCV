@@ -430,18 +430,21 @@ _recognition_models = {}
 def get_recognition(lang):
     if lang not in _recognition_models:
         if lang == 'vi':
+            import torch
+            device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+            print(f"[VNCV System] Auto-selected device for recognition: {device.upper()}")
+            
             _recognition_models['vi'] = VietOCRRecognition(
                 model_name='vgg_transformer',
-                device='cpu',        # đổi 'cuda:0' nếu có GPU
+                device=device,
                 weight_path=None     # None = tự download lần đầu
             )
+
         elif lang == 'en':
             _recognition_models['en'] = EnglishRecognition(_weight_path('recognition.onnx'))
         else:
             raise ValueError(f"Unsupported language: {lang}")
     return _recognition_models[lang]
-
-recognition = get_recognition('vi')
 
 
 # ============================================================================
@@ -524,6 +527,7 @@ def extract_text(filepath: str,
             conf = confidences[i] if i < len(confidences) else 0.0
             if isinstance(conf, (list, tuple, numpy.ndarray)):
                 conf = [float(c) for c in conf]
+                conf = sum(conf) / len(conf) if conf else 0.0
             else:
                 conf = float(conf)
             output_data.append({

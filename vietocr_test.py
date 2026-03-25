@@ -3,7 +3,9 @@ from vncv.ocr import extract_text
 
 def test_ocr():
     # Đường dẫn ảnh ví dụ (thay thế bằng ảnh thật của bạn)
-    image_path = r"C:\workspace\New folder\VNCV\images\raw\image.png"
+    image_path = r"C:\workspace\New folder\9a69b0e8_1679369188.jpg"
+    
+    #image_path = r"C:\workspace\New folder\VNCV\images\raw\image.png"
     
     print(f"--- Đang chạy OCR Tiếng Việt ---")
     # Gọi hàm trích xuất text với lang='vi' (Tiếng Việt) và return_dict=True
@@ -20,7 +22,7 @@ def test_ocr():
     print("\n--- Chuỗi JSON hoàn chỉnh ---")
     # Convert sang định dạng JSON string đẹp mắt nếu cần API
     json_output = json.dumps(results_vi, ensure_ascii=False, indent=2)
-    print(json_output)
+    #print(json_output)
 
 if __name__ == "__main__":
     test_ocr()

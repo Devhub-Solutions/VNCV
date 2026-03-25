@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vncv"
-version = "0.1.1"
+version = "0.1.2"
 description = "Vietnamese OCR engine optimized for CPU deployments"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -34,6 +34,9 @@ dependencies = [
   "torchvision",
   "pillow"
 ]
+
+[project.optional-dependencies]
+gpu = ["onnxruntime-gpu"]
 
 [project.urls]
 Homepage = "https://github.com/Devhub-Solutions/VNCV"
