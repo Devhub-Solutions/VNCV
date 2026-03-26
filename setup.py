@@ -33,11 +33,6 @@ def download_and_extract_weights():
         # We don't exit(1) here to allow build to continue for dependencies, 
         # but user will get error at runtime.
 
-class CustomBuildPy(build_py):
-    def run(self):
-        download_and_extract_weights()
-        super().run()
-
 class CustomDevelop(develop):
     def run(self):
         download_and_extract_weights()
@@ -45,7 +40,6 @@ class CustomDevelop(develop):
 
 setup(
     cmdclass={
-        'build_py': CustomBuildPy,
         'develop': CustomDevelop,
     }
 )

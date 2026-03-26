@@ -14,6 +14,8 @@ import numpy
 from PIL import Image
 from pyclipper import ET_CLOSEDPOLYGON, JT_ROUND, PyclipperOffset
 from shapely.geometry import Polygon
+import urllib.request
+import zipfile
 
 
 filterwarnings("ignore")
@@ -37,12 +39,35 @@ WEIGHTS_DIR = _get_weights_dir()
 
 def _weight_path(filename: str) -> str:
     path = WEIGHTS_DIR / filename
-    if not path.exists():
-        raise FileNotFoundError(
-            f"Weight file '{filename}' not found in {path.parent}. "
-            "Make sure package data is installed correctly."
-        )
     return str(path)
+
+
+def download_weights():
+    weights_dir = WEIGHTS_DIR
+    weights_dir.mkdir(parents=True, exist_ok=True)
+
+    # Check for missing essential files
+    essential_files = ["model_encoder.onnx", "model_decoder.onnx", "vocab.json"]
+    if all((weights_dir / f).exists() for f in essential_files):
+        return
+
+    url = "https://github.com/Devhub-Solutions/VNCV/releases/download/vocab/vocab.zip"
+    zip_path = weights_dir / "vocab.zip"
+
+    try:
+        print(f"[VNCV System] Downloading missing models from GitHub...")
+        urllib.request.urlretrieve(url, zip_path)
+        
+        print(f"[VNCV System] Extracting models to {weights_dir}...")
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(weights_dir)
+            
+        if zip_path.exists():
+            os.remove(zip_path)
+        print("[VNCV System] Models installed successfully.")
+    except Exception as e:
+        print(f"[VNCV System] ERROR: Failed to download weights: {e}")
+        raise RuntimeError(f"Could not download models from {url}. Please install them manually in {weights_dir}")
 
 
 # ============================================================================
@@ -427,6 +452,7 @@ classification = Classification(_weight_path('classification.onnx'))
 _recognition_models = {}
 
 def get_recognition(lang):
+    download_weights()  # Ensure models exist before loading
     if lang not in _recognition_models:
         if lang == 'vi':
             print(f"[VNCV System] Using ONNX for Vietnamese Recognition")
