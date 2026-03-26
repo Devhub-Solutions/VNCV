@@ -1,0 +1,70 @@
+# ============================================================
+# docker-compose.yml – VietOCR ONNX Export & Inference
+# ============================================================
+#
+# 1) Export ONNX:
+#    docker compose run export \
+#      --config /data/config.yml \
+#      --weights /data/weights.pth \
+#      --output /output
+#
+# 2) Inference:
+#    docker compose run inference \
+#      --onnx-dir /models \
+#      --image /images/test.png
+#
+# 3) So sánh ONNX vs PyTorch:
+#    docker compose run export-and-test
+# ============================================================
+
+services:
+
+  # ── Export ONNX từ PyTorch weights ─────────────────────────
+  export:
+    build:
+      context: .
+      dockerfile: Dockerfile.export
+    volumes:
+      - ./weights:/data           # Chứa config.yml + .pth
+      - ./onnx_output:/output     # Output ONNX files
+    command: >
+      --config /data/config.yml
+      --weights /data/weights.pth
+      --output /output
+
+  # ── Inference bằng ONNX Runtime ────────────────────────────
+  inference:
+    build:
+      context: .
+      dockerfile: Dockerfile.inference
+    volumes:
+      - ./onnx_output:/models     # Chứa ONNX files đã export
+      - ./test_images:/images     # Ảnh cần OCR
+
+  # ── Export + Test so sánh với PyTorch ──────────────────────
+  export-and-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.export
+    volumes:
+      - ./weights:/data
+      - ./onnx_output:/output
+      - ./test_images:/images
+    entrypoint: /bin/bash
+    command: |
+      -c "
+      echo '=== Step 1: Export ONNX ==='
+      python /app/vietocr_onnx_export.py \
+        --config /data/config.yml \
+        --weights /data/weights.pth \
+        --output /output
+
+      echo ''
+      echo '=== Step 2: Inference + Compare ==='
+      pip install -q vietocr==0.3.13 2>/dev/null
+      python /app/vietocr_onnx_inference.py \
+        --onnx-dir /output \
+        --image /images/test_image.png \
+        --config /data/config.yml \
+        --weights /data/weights.pth
+      "

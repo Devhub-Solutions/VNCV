@@ -3,3 +3,13 @@ __pycache__/
 build/
 dist/
 *.egg-info/
+
+# Ignore all model files in weights
+vncv/weights/*.onnx
+vncv/weights/*.onnx.data
+vncv/weights/*.json
+# Do not ignore __init__.py in weights
+!vncv/weights/__init__.py
+
+# Ignore test model output dir
+vietocr-onnx-package/onnx_output/

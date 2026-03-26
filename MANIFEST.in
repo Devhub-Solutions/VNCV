@@ -1,2 +1,2 @@
 include README.md
-recursive-include vncv/weights *.onnx
+recursive-include vncv/weights *.onnx *.onnx.data *.json

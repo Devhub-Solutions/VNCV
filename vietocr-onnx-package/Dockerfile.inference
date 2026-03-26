@@ -1,0 +1,36 @@
+# ============================================================
+# Dockerfile.inference – Inference ONNX (không cần PyTorch)
+# ============================================================
+# Image nhẹ, chỉ cần onnxruntime + Pillow.
+# Dùng để chạy OCR trên ảnh đã có file ONNX sẵn.
+#
+# Build:
+#   docker build -f Dockerfile.inference -t vietocr-onnx-inference .
+#
+# Run (với ONNX files đã export sẵn):
+#   docker run --rm \
+#     -v $(pwd)/onnx_output:/models \
+#     -v $(pwd)/images:/images \
+#     vietocr-onnx-inference \
+#     --onnx-dir /models \
+#     --image /images/test.png
+# ============================================================
+
+FROM python:3.13-slim
+
+LABEL maintainer="VietOCR ONNX Inference"
+LABEL description="VietOCR OCR inference using ONNX Runtime (no PyTorch needed)"
+
+WORKDIR /app
+
+# Install inference-only dependencies (nhẹ, ~200MB thay vì ~2GB)
+RUN pip install --no-cache-dir \
+    onnxruntime==1.24.4 \
+    Pillow==12.1.1 \
+    numpy==2.3.5
+
+# Copy inference script
+COPY vietocr_onnx_inference.py /app/
+
+ENTRYPOINT ["python", "/app/vietocr_onnx_inference.py"]
+CMD ["--help"]

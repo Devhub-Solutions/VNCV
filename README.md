@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10--3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/License-Open%20Source-22c55e?style=flat-square)](LICENSE)
 [![DevHub](https://img.shields.io/badge/By-DevHub%20Solutions-6366f1?style=flat-square)](https://github.com)
-[![VietOCR](https://img.shields.io/badge/Powered%20by-VietOCR-f97316?style=flat-square)](https://github.com/pbcquoc/vietocr)
+[![VietOCR](https://img.shields.io/badge/Powered%20by-VietOCR%20ONNX-f97316?style=flat-square&logo=onnx&logoColor=white)](https://github.com/pbcquoc/vietocr)
 
 </div>
 
@@ -32,20 +32,16 @@ Cài đặt package thông qua pip:
 ```bash
 pip install vncv
 ```
-hoặc với GPU
+
+Hoặc nếu bạn muốn sử dụng GPU (tăng tốc tối đa):
 
 ```bash
-pip uninstall torch torchvision torchaudio -y; pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu118
 pip install vncv[gpu]
 ```
 
+**🚀 Điểm mới:** `vncv` hiện đã chuyển hoàn toàn sang **ONNX Runtime Engine**. Bạn không còn cần cài đặt `PyTorch` (nặng ~2GB) nữa. Thư viện giờ đây siêu nhẹ, cài đặt nhanh và chạy mượt mà ngay cả trên CPU yếu.
 
-Trong quá trình cài đặt, các thư viện phụ thuộc sẽ được tự động tải về, bao gồm:
-* `vietocr`
-* `onnxruntime`
-* `torch`
-* `opencv-python`
-* và các thư viện liên quan khác.
+Trong quá trình build hoặc cài đặt lần đầu, các mô hình OCR cần thiết sẽ được **tự động tải về** và cấu hình sẵn.
 
 ---
 
@@ -63,7 +59,8 @@ print("OCR Results:", results)
 ```
 
 👉 Thư viện sẽ tự động:
-* Load model OCR (mặc định: `vgg_transformer` cho tiếng Việt, `onnx` cho tiếng Anh)
+* **Tự động tải weights** từ GitHub Releases nếu chưa có (không cần copy thủ công)
+* Load model OCR bằng **ONNX Runtime** (tối ưu hóa tốc độ x2-x5 so với PyTorch trên CPU)
 * Phát hiện vùng chứa văn bản (text detection)
 * Nhận dạng nội dung (text recognition)
 
@@ -119,25 +116,22 @@ results = extract_text("test_image.jpg", lang="vi", return_dict=True)
 
 ## 5. Tính năng nổi bật
 
-* ✅ **Tự động tải model**, không cần cấu hình phức tạp
-* ✅ **Hỗ trợ đa ngôn ngữ** (Tiếng Việt `vi` và Tiếng Anh `en`)
-* ✅ **Có CLI tiện lợi** tích hợp sẵn
-* ✅ **Trả về JSON chi tiết** bao gồm:
-  * Nội dung text
-  * Vị trí bounding box (toạ độ)
-  * Độ tin cậy (confidence)
-* ✅ **Dễ dàng tích hợp** vào pipeline xử lý ảnh và hệ thống API
+* ⚡ **Tốc độ vượt trội**: Sử dụng ONNX Runtime giúp giảm latency, xử lý ảnh nhanh hơn đáng kể.
+* 📦 **Siêu nhẹ**: Gỡ bỏ phụ thuộc vào PyTorch, giảm kích thước cài đặt từ GB xuống MB.
+* ✅ **Tự động tải model**, không cần cấu hình phức tạp.
+* ✅ **Hỗ trợ đa ngôn ngữ** (Tiếng Việt `vi` và Tiếng Anh `en`).
+* ✅ **Hỗ trợ GPU/CPU**: Tự động nhận diện và tối ưu cho phần cứng hiện có.
+* ✅ **Trả về JSON chi tiết** bao gồm: văn bản, bounding box, và confidence.
 
 ---
 
 ## 6. Gợi ý sử dụng
 
-`vncv` phù hợp cho các bài toán:
-* Cài đặt trên máy chủ không có GPU, chỉ cpu
-* OCR tài liệu tiếng Việt
-* Trích xuất thông tin từ ảnh (ID card, hóa đơn, văn bản scan)
-* Tiền xử lý dữ liệu cho quá trình xử lý ngôn ngữ tự nhiên (NLP)
-* Xây dựng hệ thống tự động hóa nhập liệu, API Trí Tuệ Nhân Tạo
+`vncv` là lựa chọn số 1 cho:
+* **Server/Lambda/Edge devices**: Nơi tài nguyên (RAM/Disk) hạn chế và không có GPU.
+* **Hệ thống Real-time**: Cần tốc độ phản hồi nhanh.
+* **OCR tài liệu tiếng Việt**: Hóa đơn, CMND/CCCD, văn bản hành chính.
+* **Tích hợp API**: Dễ dàng build các dịch vụ OCR Microservices gọn nhẹ.
 
 ---
 

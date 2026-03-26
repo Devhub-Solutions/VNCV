@@ -1,0 +1,13 @@
+# Requirements cho EXPORT ONNX (cần PyTorch + vietocr)
+# Tested với Python 3.13 trên CPU
+# ─────────────────────────────────────────────────────
+torch==2.11.0+cpu
+torchvision==0.26.0+cpu
+onnx==1.20.1
+onnxscript==0.6.2
+onnxruntime==1.24.4
+einops==0.8.2
+vietocr==0.3.13
+Pillow==12.1.1
+numpy==2.3.5
+PyYAML>=6.0

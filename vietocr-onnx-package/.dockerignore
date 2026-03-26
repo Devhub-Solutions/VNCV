@@ -1,0 +1,7 @@
+__pycache__
+*.pyc
+.git
+weights/
+*.pth
+test_images/
+onnx_output/*.data

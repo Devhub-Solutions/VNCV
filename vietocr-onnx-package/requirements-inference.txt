@@ -1,0 +1,6 @@
+# Requirements cho INFERENCE ONNX (KHÔNG cần PyTorch)
+# Nhẹ hơn nhiều so với export – chỉ cần onnxruntime
+# ─────────────────────────────────────────────────────
+onnxruntime==1.24.4
+Pillow==12.1.1
+numpy==2.3.5

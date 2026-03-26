@@ -1,0 +1,63 @@
+# ============================================================
+# Dockerfile.export – Build ONNX từ VietOCR weights
+# ============================================================
+# Dùng để export model VietOCR (PyTorch) → ONNX.
+# Cần mount volume chứa config + weights vào /data
+#
+# Build:
+#   docker build -f Dockerfile.export -t vietocr-onnx-export .
+#
+# Run:
+#   docker run --rm \
+#     -v $(pwd)/weights:/data \
+#     -v $(pwd)/onnx_output:/output \
+#     vietocr-onnx-export \
+#     --config /data/config.yml \
+#     --weights /data/transformerocr.pth \
+#     --output /output
+# ============================================================
+
+FROM python:3.13-slim
+
+LABEL maintainer="VietOCR ONNX Export"
+LABEL description="Export VietOCR (PyTorch) to ONNX format"
+
+WORKDIR /app
+
+# System dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install PyTorch CPU
+RUN pip install --no-cache-dir \
+    torch==2.11.0+cpu \
+    torchvision==0.26.0+cpu \
+    --index-url https://download.pytorch.org/whl/cpu
+
+# Install other dependencies
+RUN pip install --no-cache-dir \
+    onnx==1.20.1 \
+    onnxscript==0.6.2 \
+    onnxruntime==1.24.4 \
+    einops==0.8.2 \
+    Pillow==12.1.1 \
+    numpy==2.3.5 \
+    PyYAML>=6.0
+
+# Install vietocr from source and apply patches
+RUN pip install --no-cache-dir vietocr==0.3.13
+
+# Apply ONNX-compatible patches to vietocr backbone
+COPY patches/vgg_patched.py /tmp/vgg_patched.py
+COPY patches/resnet_patched.py /tmp/resnet_patched.py
+RUN VIETOCR_PATH=$(python -c "import vietocr; import os; print(os.path.dirname(vietocr.__file__))") && \
+    cp /tmp/vgg_patched.py    "$VIETOCR_PATH/model/backbone/vgg.py" && \
+    cp /tmp/resnet_patched.py "$VIETOCR_PATH/model/backbone/resnet.py" && \
+    echo "Patched vietocr backbone at: $VIETOCR_PATH"
+
+# Copy export script
+COPY vietocr_onnx_export.py /app/
+
+ENTRYPOINT ["python", "/app/vietocr_onnx_export.py"]
+CMD ["--help"]

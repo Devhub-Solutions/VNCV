@@ -14,8 +14,7 @@ import numpy
 from PIL import Image
 from pyclipper import ET_CLOSEDPOLYGON, JT_ROUND, PyclipperOffset
 from shapely.geometry import Polygon
-from vietocr.tool.config import Cfg
-from vietocr.tool.predictor import Predictor
+
 
 filterwarnings("ignore")
 
@@ -395,26 +394,26 @@ class EnglishRecognition:
 
 
 # ============================================================================
-# VIETOCR RECOGNITION — thay thế Recognition ONNX cũ
+# VIETOCR RECOGNITION ONNX
 # ============================================================================
 
+from .vietocr_onnx import VietOCROnnxEngine
+
 class VietOCRRecognition:
-    def __init__(self, model_name='vgg_transformer', device='cpu', weight_path=None):
-        config = Cfg.load_config_from_name(model_name)
-        config['device'] = device
-        config['cnn']['pretrained'] = False
-        if weight_path and os.path.exists(weight_path):
-            config['weights'] = weight_path
-        self.predictor = Predictor(config)
+    def __init__(self, weight_dir):
+        self.engine = VietOCROnnxEngine(
+            onnx_dir=weight_dir,
+            seq_modeling='transformer'
+        )
 
     def __call__(self, images):
         results, confidences = [], []
         for img in images:
             # crop_image trả về numpy BGR → convert sang PIL RGB cho VietOCR
             pil_img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-            text, conf = self.predictor.predict(pil_img, return_prob=True)
+            text, prob = self.engine.predict(pil_img)
             results.append(text)
-            confidences.append(conf)
+            confidences.append(prob)
         return results, confidences
 
 
@@ -430,15 +429,8 @@ _recognition_models = {}
 def get_recognition(lang):
     if lang not in _recognition_models:
         if lang == 'vi':
-            import torch
-            device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-            print(f"[VNCV System] Auto-selected device for recognition: {device.upper()}")
-            
-            _recognition_models['vi'] = VietOCRRecognition(
-                model_name='vgg_transformer',
-                device=device,
-                weight_path=None     # None = tự download lần đầu
-            )
+            print(f"[VNCV System] Using ONNX for Vietnamese Recognition")
+            _recognition_models['vi'] = VietOCRRecognition(weight_dir=str(WEIGHTS_DIR))
 
         elif lang == 'en':
             _recognition_models['en'] = EnglishRecognition(_weight_path('recognition.onnx'))
