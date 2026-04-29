@@ -25,11 +25,11 @@ classifiers = [
 ]
 dependencies = [
   "onnxruntime",
-  "opencv-python",
+  "opencv-python>=4.8.1.78",
   "shapely",
   "pyclipper",
-  "numpy==1.26.4",
-  "pillow"
+  "numpy>=1.26.4",
+  "pillow>=12.2.0"
 ]
 
 [project.optional-dependencies]

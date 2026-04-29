@@ -2,5 +2,5 @@
 # Nhẹ hơn nhiều so với export – chỉ cần onnxruntime
 # ─────────────────────────────────────────────────────
 onnxruntime==1.24.4
-Pillow==12.1.1
+Pillow>=12.2.0
 numpy==2.3.5

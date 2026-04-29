@@ -1,11 +1,11 @@
 onnxruntime
-opencv-python
+opencv-python>=4.8.1.78
 shapely
 pyclipper
-numpy==1.26.4
+numpy>=1.26.4
 vietocr
 torch
 torchvision
-pillow
+pillow>=12.2.0
 # Để cài đặt bản CPU-only cho torch/torchvision:
 # pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
