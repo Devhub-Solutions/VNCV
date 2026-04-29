@@ -8,6 +8,6 @@ onnxscript==0.6.2
 onnxruntime==1.24.4
 einops==0.8.2
 vietocr==0.3.13
-Pillow==12.1.1
+Pillow>=12.2.0
 numpy==2.3.5
 PyYAML>=6.0
