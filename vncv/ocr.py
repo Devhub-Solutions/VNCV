@@ -491,7 +491,8 @@ def extract_text(filepath: str,
         If True, attempts to export an NER dataset (requires optional helper module).
     """
     image_path = Path(filepath)
-    frame = cv2.imread(str(image_path))
+    raw = numpy.fromfile(str(image_path), dtype=numpy.uint8)
+    frame = cv2.imdecode(raw, cv2.IMREAD_COLOR)
     if frame is None:
         raise FileNotFoundError(f"Cannot read image at {filepath}")
 
