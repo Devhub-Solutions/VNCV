@@ -164,5 +164,8 @@ Dự án được phát hành dưới **giấy phép mã nguồn mở** cho mụ
 
 <br/>
 <div align="center">
-Made with ❤️ by <b>DevHub Solutions</b>
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Devhub-Solutions/VNCV&type=Timeline)](https://www.star-history.com/#Devhub-Solutions/VNCV&Timeline)
+
+Made with ❤️ by <a href="https://devhub.ai.vn">DevHub Solutions</a>
 
